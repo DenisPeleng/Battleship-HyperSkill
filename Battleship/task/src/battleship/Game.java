@@ -72,7 +72,6 @@ public class Game {
 
     public static boolean fillTurn(String turnCoordinates, PlayerField playerField) {
         String[][] fieldWithShips = playerField.getFieldWithShips();
-        String[][] fieldWithFog = playerField.getFieldWithFog();
         int turnCoordinateX = getNumberByLetter(turnCoordinates.split("")[0]);
         int turnCoordinateY = Integer.parseInt(turnCoordinates.substring(1)) - 1;
         if (!playerField.isCoordinateInField(turnCoordinateX) || !playerField.isCoordinateInField(turnCoordinateY)) {
@@ -81,20 +80,13 @@ public class Game {
         }
 
         if (fieldWithShips[turnCoordinateX][turnCoordinateY].contains("O")) {
-            fieldWithFog[turnCoordinateX][turnCoordinateY] = "X";
-            fieldWithShips[turnCoordinateX][turnCoordinateY] = "X";
-            playerField.setFieldWithShips(fieldWithShips);
-            playerField.setFieldWithFog(fieldWithFog);
-            playerField.printFieldWithFog();
-            System.out.println("You hit a ship!\n");
+            fillHit(turnCoordinateX, turnCoordinateY, playerField);
+        } else if (fieldWithShips[turnCoordinateX][turnCoordinateY].contains("M")) {
+            fillMissed(turnCoordinateX, turnCoordinateY, playerField);
+        } else if (fieldWithShips[turnCoordinateX][turnCoordinateY].contains("X")) {
+            fillHit(turnCoordinateX, turnCoordinateY, playerField);
         } else {
-
-            fieldWithFog[turnCoordinateX][turnCoordinateY] = "M";
-            fieldWithShips[turnCoordinateX][turnCoordinateY] = "M";
-            playerField.setFieldWithShips(fieldWithShips);
-            playerField.setFieldWithFog(fieldWithFog);
-            playerField.printFieldWithFog();
-            System.out.println("You missed!\n");
+            fillMissed(turnCoordinateX, turnCoordinateY, playerField);
         }
 
         return true;
@@ -106,5 +98,44 @@ public class Game {
         possibleShips.put("Submarine", 3);
         possibleShips.put("Cruiser", 3);
         possibleShips.put("Destroyer", 2);
+    }
+
+    public static boolean isGameNotEnded(PlayerField playerField) {
+        String[][] fieldWithShips = playerField.getFieldWithShips();
+        for (String[] fieldWithShip : fieldWithShips) {
+            for (String s : fieldWithShip) {
+                if (s.contains("O")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void fillMissed(int turnCoordinateX, int turnCoordinateY, PlayerField playerField) {
+        String[][] fieldWithShips = playerField.getFieldWithShips();
+        String[][] fieldWithFog = playerField.getFieldWithFog();
+        fieldWithFog[turnCoordinateX][turnCoordinateY] = "M";
+        fieldWithShips[turnCoordinateX][turnCoordinateY] = "M";
+        playerField.setFieldWithShips(fieldWithShips);
+        playerField.setFieldWithFog(fieldWithFog);
+        playerField.printFieldWithFog();
+        System.out.println("You missed. Try again:");
+    }
+
+    private static void fillHit(int turnCoordinateX, int turnCoordinateY, PlayerField playerField) {
+        String[][] fieldWithShips = playerField.getFieldWithShips();
+        String[][] fieldWithFog = playerField.getFieldWithFog();
+        fieldWithFog[turnCoordinateX][turnCoordinateY] = "X";
+        fieldWithShips[turnCoordinateX][turnCoordinateY] = "X";
+        playerField.setFieldWithShips(fieldWithShips);
+        playerField.setFieldWithFog(fieldWithFog);
+        playerField.printFieldWithFog();
+        if (isGameNotEnded(playerField)) {
+            System.out.println("You hit a ship! Try again:");
+        } else {
+            System.out.println("You sank the last ship. You won. Congratulations!");
+        }
+
     }
 }

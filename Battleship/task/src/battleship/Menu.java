@@ -26,7 +26,6 @@ public class Menu {
     }
 
 
-
     public static void startGameMenu(PlayerField playerField) {
         addShips(playerField);
         startGame(playerField);
@@ -35,13 +34,16 @@ public class Menu {
     public static void startGame(PlayerField playerField) {
         System.out.println("The game starts!\n");
         playerField.printFieldWithFog();
-        takeShot(playerField);
-        System.out.println();
-        playerField.printFieldWithShips();
+        System.out.println("Take a shot!\n");
+        while (Game.isGameNotEnded(playerField)) {
+            takeShot(playerField);
+            System.out.println();
+         //   playerField.printFieldWithShips();
+        }
+
     }
 
     public static void takeShot(PlayerField playerField) {
-        System.out.println("Take a shot!\n");
         String turnCoordinates = scanner.nextLine();
         System.out.println();
         while (!fillTurn(turnCoordinates, playerField)) {
