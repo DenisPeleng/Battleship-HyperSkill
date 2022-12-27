@@ -5,17 +5,45 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PlayerField {
-    private String[][] field = new String[10][10];
-    private final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+    private String[][] fieldWithShips = new String[10][10];
+    private String[][] fieldWithFog = new String[10][10];
+    private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 
     PlayerField() {
         String defaultFogOfWar = "~";
-        for (String[] strings : field) {
+        for (String[] strings : fieldWithShips) {
+            Arrays.fill(strings, defaultFogOfWar);
+        }
+        for (String[] strings : fieldWithFog) {
             Arrays.fill(strings, defaultFogOfWar);
         }
     }
 
-    public void printField() {
+    public String[][] getFieldWithFog() {
+        return fieldWithFog;
+    }
+
+    public void setFieldWithFog(String[][] fieldWithFog) {
+        this.fieldWithFog = fieldWithFog;
+    }
+
+    public String[][] getFieldWithShips() {
+        return fieldWithShips;
+    }
+
+    public void setFieldWithShips(String[][] fieldWithShips) {
+        this.fieldWithShips = fieldWithShips;
+    }
+
+    public void printFieldWithShips() {
+        printField(fieldWithShips);
+    }
+
+    public void printFieldWithFog() {
+        printField(fieldWithFog);
+    }
+
+    private void printField(String[][] field) {
         System.out.print("  ");
         for (int i = 1; i <= field.length; i++) {
             System.out.printf("%s ", i);
@@ -33,61 +61,8 @@ public class PlayerField {
         System.out.println();
     }
 
-    public boolean fillShip(String userCoordinatesInput, String nameShip, int lengthOfShip) {
-        String[] userCoordinatesInputArr = userCoordinatesInput.split(" ");
-        if (userCoordinatesInputArr.length != 2) {
-            return false;
-        }
 
-        String beginningCoordinate = userCoordinatesInputArr[0];
-        String endingCoordinate = userCoordinatesInputArr[1];
-        if (isInvalidCoordinates(beginningCoordinate) || isInvalidCoordinates(endingCoordinate)) {
-            System.out.println("Error! Wrong ship location! Try again:");
-            return false;
-        }
-        int beginningCoordinateX = getNumberByLetter(userCoordinatesInputArr[0].split("")[0]);
-        int beginningCoordinateY = Integer.parseInt(userCoordinatesInputArr[0].substring(1)) - 1;
-        int endingCoordinateX = getNumberByLetter(userCoordinatesInputArr[1].split("")[0]);
-        int endingCoordinateY = Integer.parseInt(userCoordinatesInputArr[1].substring(1)) - 1;
-        if ((Math.abs(beginningCoordinateX - endingCoordinateX) + 1) != lengthOfShip && (Math.abs(beginningCoordinateY - endingCoordinateY) + 1) != lengthOfShip) {
-            System.out.printf("Error! Wrong length of the %s! Try again:\n\n", nameShip);
-            return false;
-
-        }
-        if (beginningCoordinateX > endingCoordinateX) {
-            int temp = endingCoordinateX;
-            endingCoordinateX = beginningCoordinateX;
-            beginningCoordinateX = temp;
-        }
-        if (beginningCoordinateY > endingCoordinateY) {
-            int temp = endingCoordinateY;
-            endingCoordinateY = beginningCoordinateY;
-            beginningCoordinateY = temp;
-        }
-        String[][] tempArr = Arrays.copyOf(field, field.length);
-        if ((beginningCoordinateX != endingCoordinateX) && (beginningCoordinateY != endingCoordinateY)) {
-            System.out.println("Error! Wrong ship location! Try again:\n");
-            return false;
-        }
-        for (int i = beginningCoordinateX; i <= endingCoordinateX; i++) {
-            for (int j = beginningCoordinateY; j <= endingCoordinateY; j++) {
-                if (!isCellValidToFill(i, j)) {
-                    System.out.println("Error! You placed it too close to another one. Try again:\n");
-                    field = Arrays.copyOf(tempArr, tempArr.length);
-                    return false;
-                }
-            }
-        }
-        for (int i = beginningCoordinateX; i <= endingCoordinateX; i++) {
-            for (int j = beginningCoordinateY; j <= endingCoordinateY; j++) {
-                field[i][j] = "O";
-            }
-
-        }
-        return true;
-    }
-
-    private boolean isInvalidCoordinates(String coordinate) {
+    public boolean isInvalidCoordinates(String coordinate) {
         if (coordinate.length() > 3 || coordinate.length() < 2) {
             return false;
         }
@@ -101,11 +76,11 @@ public class PlayerField {
 
     }
 
-    private boolean isCoordinateInField(int coordinate) {
+    public boolean isCoordinateInField(int coordinate) {
         return coordinate >= 0 && coordinate < 10;
     }
 
-    private int getNumberByLetter(String letter) {
+    public static int getNumberByLetter(String letter) {
         for (int i = 0; i < alphabet.length; i++) {
             if (alphabet[i].contains(letter.toUpperCase())) {
                 return i;
@@ -114,7 +89,7 @@ public class PlayerField {
         return -1;
     }
 
-    private boolean isCellValidToFill(int x, int y) {
+    public boolean isInvalidCellToFill(int x, int y) {
         List<Integer> coordinatesXToCheck = new ArrayList<>();
         List<Integer> coordinatesYToCheck = new ArrayList<>();
         for (int i = -1; i <= 1; i++) {
@@ -129,12 +104,14 @@ public class PlayerField {
         ) {
             for (int tempY : coordinatesYToCheck
             ) {
-                if (!field[tempX][tempY].contains("~")) {
-                    return false;
+                if (!fieldWithShips[tempX][tempY].contains("~")) {
+                    return true;
                 }
             }
         }
-        return true;
+        return false;
 
     }
+
+
 }
