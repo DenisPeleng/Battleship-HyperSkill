@@ -7,9 +7,11 @@ import java.util.List;
 public class PlayerField {
     private String[][] fieldWithShips = new String[10][10];
     private String[][] fieldWithFog = new String[10][10];
+    private final String playerName;
     private static final String[] alphabet = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+    private  List<List<String>> aliveShips = new ArrayList<>();
 
-    PlayerField() {
+    PlayerField(String playerName) {
         String defaultFogOfWar = "~";
         for (String[] strings : fieldWithShips) {
             Arrays.fill(strings, defaultFogOfWar);
@@ -17,6 +19,7 @@ public class PlayerField {
         for (String[] strings : fieldWithFog) {
             Arrays.fill(strings, defaultFogOfWar);
         }
+        this.playerName = playerName;
     }
 
     public String[][] getFieldWithFog() {
@@ -58,7 +61,6 @@ public class PlayerField {
             }
             System.out.println();
         }
-        System.out.println();
     }
 
 
@@ -113,5 +115,15 @@ public class PlayerField {
 
     }
 
+    public String getPlayerName() {
+        return playerName;
+    }
 
+    public List<List<String>> getAliveShips() {
+        return aliveShips;
+    }
+
+    public void setAliveShips(List<List<String>> aliveShips) {
+        this.aliveShips = aliveShips;
+    }
 }

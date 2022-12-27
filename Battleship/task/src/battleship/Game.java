@@ -1,8 +1,6 @@
 package battleship;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static battleship.PlayerField.getNumberByLetter;
 
@@ -14,16 +12,18 @@ public class Game {
     private static final Map<String, Integer> possibleShips = new LinkedHashMap<>();
 
     public static boolean fillShip(String userCoordinatesInput, String nameShip, int lengthOfShip, PlayerField playerField) {
+        List<List<String>> aliveShips = playerField.getAliveShips();
         String[][] field = playerField.getFieldWithShips();
         String[] userCoordinatesInputArr = userCoordinatesInput.split(" ");
         if (userCoordinatesInputArr.length != 2) {
+            System.out.println("Error! Wrong ship location! Try again:\n");
             return false;
         }
 
         String beginningCoordinate = userCoordinatesInputArr[0];
         String endingCoordinate = userCoordinatesInputArr[1];
         if (playerField.isInvalidCoordinates(beginningCoordinate) || playerField.isInvalidCoordinates(endingCoordinate)) {
-            System.out.println("Error! Wrong ship location! Try again:");
+            System.out.println("Error! Wrong ship location! Try again:\n");
             return false;
         }
         int beginningCoordinateX = getNumberByLetter(userCoordinatesInputArr[0].split("")[0]);
@@ -60,33 +60,36 @@ public class Game {
                 }
             }
         }
+        List<String> aliveShipCoordinates = new ArrayList<>();
         for (int i = beginningCoordinateX; i <= endingCoordinateX; i++) {
             for (int j = beginningCoordinateY; j <= endingCoordinateY; j++) {
                 field[i][j] = "O";
+                aliveShipCoordinates.add(i + "," + j);
             }
 
         }
+        aliveShips.add(aliveShipCoordinates);
+        playerField.setAliveShips(aliveShips);
         playerField.setFieldWithShips(field);
         return true;
     }
 
-    public static boolean fillTurn(String turnCoordinates, PlayerField playerField) {
-        String[][] fieldWithShips = playerField.getFieldWithShips();
+    public static boolean fillTurn(String turnCoordinates, PlayerField foePlayer) {
+        String[][] fieldWithShips = foePlayer.getFieldWithShips();
         int turnCoordinateX = getNumberByLetter(turnCoordinates.split("")[0]);
         int turnCoordinateY = Integer.parseInt(turnCoordinates.substring(1)) - 1;
-        if (!playerField.isCoordinateInField(turnCoordinateX) || !playerField.isCoordinateInField(turnCoordinateY)) {
+        if (!foePlayer.isCoordinateInField(turnCoordinateX) || !foePlayer.isCoordinateInField(turnCoordinateY)) {
             System.out.println("Error! You entered the wrong coordinates! Try again:\n");
             return false;
         }
-
         if (fieldWithShips[turnCoordinateX][turnCoordinateY].contains("O")) {
-            fillHit(turnCoordinateX, turnCoordinateY, playerField);
+            fillHit(turnCoordinateX, turnCoordinateY, foePlayer);
         } else if (fieldWithShips[turnCoordinateX][turnCoordinateY].contains("M")) {
-            fillMissed(turnCoordinateX, turnCoordinateY, playerField);
+            fillMissed(turnCoordinateX, turnCoordinateY, foePlayer);
         } else if (fieldWithShips[turnCoordinateX][turnCoordinateY].contains("X")) {
-            fillHit(turnCoordinateX, turnCoordinateY, playerField);
+            fillHit(turnCoordinateX, turnCoordinateY, foePlayer);
         } else {
-            fillMissed(turnCoordinateX, turnCoordinateY, playerField);
+            fillMissed(turnCoordinateX, turnCoordinateY, foePlayer);
         }
 
         return true;
@@ -112,30 +115,49 @@ public class Game {
         return false;
     }
 
-    private static void fillMissed(int turnCoordinateX, int turnCoordinateY, PlayerField playerField) {
-        String[][] fieldWithShips = playerField.getFieldWithShips();
-        String[][] fieldWithFog = playerField.getFieldWithFog();
+    private static void fillMissed(int turnCoordinateX, int turnCoordinateY, PlayerField foePlayer) {
+        String[][] fieldWithShips = foePlayer.getFieldWithShips();
+        String[][] fieldWithFog = foePlayer.getFieldWithFog();
         fieldWithFog[turnCoordinateX][turnCoordinateY] = "M";
         fieldWithShips[turnCoordinateX][turnCoordinateY] = "M";
-        playerField.setFieldWithShips(fieldWithShips);
-        playerField.setFieldWithFog(fieldWithFog);
-        playerField.printFieldWithFog();
-        System.out.println("You missed. Try again:");
+        foePlayer.setFieldWithShips(fieldWithShips);
+        foePlayer.setFieldWithFog(fieldWithFog);
+        System.out.println("You missed!\n");
     }
 
-    private static void fillHit(int turnCoordinateX, int turnCoordinateY, PlayerField playerField) {
-        String[][] fieldWithShips = playerField.getFieldWithShips();
-        String[][] fieldWithFog = playerField.getFieldWithFog();
+    private static void fillHit(int turnCoordinateX, int turnCoordinateY, PlayerField foePlayer) {
+        String[][] fieldWithShips = foePlayer.getFieldWithShips();
+        String[][] fieldWithFog = foePlayer.getFieldWithFog();
         fieldWithFog[turnCoordinateX][turnCoordinateY] = "X";
         fieldWithShips[turnCoordinateX][turnCoordinateY] = "X";
-        playerField.setFieldWithShips(fieldWithShips);
-        playerField.setFieldWithFog(fieldWithFog);
-        playerField.printFieldWithFog();
-        if (isGameNotEnded(playerField)) {
-            System.out.println("You hit a ship! Try again:");
-        } else {
-            System.out.println("You sank the last ship. You won. Congratulations!");
+        foePlayer.setFieldWithShips(fieldWithShips);
+        foePlayer.setFieldWithFog(fieldWithFog);
+        List<List<String>> aliveShips = foePlayer.getAliveShips();
+        for (List<String> aliveShipCoordinates : aliveShips
+        ) {
+            for (int i = 0; i < aliveShipCoordinates.size(); i++) {
+                if (aliveShipCoordinates.get(i).contains(turnCoordinateX + "," + turnCoordinateY)) {
+                    aliveShipCoordinates.remove(i);
+                    if (!isGameNotEnded(foePlayer)) {
+                        System.out.println("You sank the last ship. You won. Congratulations!");
+                    } else if (aliveShipCoordinates.isEmpty()) {
+                        System.out.println("You sank a ship!\n");
+                    }else {
+                        System.out.println("You hit a ship!\n");
+                    }
+                    return;
+                }
+            }
         }
+    }
 
+    public static void printFiledForPlayer(PlayerField playerOwnField, PlayerField playerFoeField) {
+        playerFoeField.printFieldWithFog();
+        for (int i = 0; i <= 20; i++) {
+            System.out.print("-");
+        }
+        System.out.println();
+        playerOwnField.printFieldWithShips();
     }
 }
+
